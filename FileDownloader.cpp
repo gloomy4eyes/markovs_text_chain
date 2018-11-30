@@ -7,10 +7,11 @@
 #include <fstream>
 #include <cstring>
 #include "Tokenizer.h"
+#include "MarkovsChain.h"
 
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
-  ((std::string*)userp)->append((char*)contents, size * nmemb);
+  ((std::string*)userp)->append((char *)contents, size * nmemb);
   return size * nmemb;
 }
 
@@ -24,10 +25,11 @@ FileDownloader::~FileDownloader() {
 
 void FileDownloader::download(const std::string &destinationPath) {
 
-  auto result = mkdir(destinationPath.c_str(), S_IREAD | S_IWRITE);
-  if (result != 0 && errno != EEXIST) {
-    std::cout << strerror(errno) << std::endl;
-  }
+//  auto result = mkdir(destinationPath.c_str(), S_IREAD | S_IWRITE);
+//  if (result != 0 && errno != EEXIST) {
+//    std::wcout << strerror(errno) << std::endl;
+//  }
+  MarkovsChain mc;
   for (auto & url : _urls) {
     std::string readBuffer;
 
@@ -39,25 +41,14 @@ void FileDownloader::download(const std::string &destinationPath) {
       CURLcode res = curl_easy_perform(curl);
       if (res == CURLE_OK) {
         curl_easy_cleanup(curl);
-//        std::cout << readBuffer << std::endl;
-
         auto tokens = Tokenizer::tokenize(readBuffer, ' ');
-        for (auto &token : tokens) {
-          std::cout << token << std::endl;
-        }
-//        std::string fdstp = std::string(destinationPath).append("/").append(generateUid()).append(".txt");
-//        std::ofstream ofs(fdstp, std::ios::binary | std::ios::trunc);
-//        if (!ofs.is_open()) {
-//          std::cerr << "file " + fdstp + " open error: " + strerror(errno) << std::endl;
-//        } else {
-//          ofs << readBuffer;
-//          ofs.close();
-//        }
+        mc.process(tokens);
       } else {
         std::cout << "error on getting: " << url << ", error: " << res << std::endl;
       }
     }
   }
+  mc.toFile();
 
 }
 
