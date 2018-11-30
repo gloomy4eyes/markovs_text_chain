@@ -26,7 +26,7 @@ std::vector<std::string> Tokenizer::tokenize(const std::string &string, char sep
     if (posEnd == std::string::npos) {
       break;
     }
-    std::string tmp = string.substr(posBeg, --posEnd - posBeg);
+    std::string tmp = string.substr(posBeg, posEnd - posBeg);
     trim(tmp);
 //    for (auto it = tmp.begin(); it != tmp.end(); it++) {
 //      if (!isalnum(*it)) {
@@ -37,16 +37,17 @@ std::vector<std::string> Tokenizer::tokenize(const std::string &string, char sep
       _tokens.emplace_back(tmp);
     }
 
-    posBeg = ++++posEnd;
+    posBeg = ++posEnd;
   }
   return _tokens;
 }
 
 void Tokenizer::trim(std::string &str) {
+  return;
   size_t posB{0};
   size_t posE{0};
 
-  auto f = strlen(&str[0]);
+  auto f = str.size();
   for (size_t i = 0; i < f; ++i) {
     if (!isSym(str[i])) {
       posB = i;
