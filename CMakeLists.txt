@@ -15,7 +15,7 @@ endif ()
 
 set(SOURCES
     main.cpp FileDownloader.h FileDownloader.cpp
-    Tokenizer.cpp Tokenizer.h)
+    Tokenizer.cpp Tokenizer.h MarkovsChain.cpp MarkovsChain.h Misc.h)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} -lcurl)
