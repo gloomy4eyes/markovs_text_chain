@@ -15,7 +15,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
   return size * nmemb;
 }
 
-FileDownloader::FileDownloader(std::list<std::string> &urls) : /*_curl(curl_easy_init()),*/ _urls(urls) {
+FileDownloader::FileDownloader(std::list<std::string> &urls, MarkovsChain & mc) : /*_curl(curl_easy_init()),*/ _urls(urls), _mc(mc) {
 
 }
 
@@ -29,7 +29,6 @@ void FileDownloader::download(const std::string &destinationPath) {
 //  if (result != 0 && errno != EEXIST) {
 //    std::wcout << strerror(errno) << std::endl;
 //  }
-  MarkovsChain mc;
   for (auto & url : _urls) {
     std::string readBuffer;
 
@@ -42,14 +41,12 @@ void FileDownloader::download(const std::string &destinationPath) {
       if (res == CURLE_OK) {
         curl_easy_cleanup(curl);
         auto tokens = Tokenizer::tokenize(readBuffer, ' ');
-        mc.process(tokens);
+        _mc.process(tokens);
       } else {
         std::cout << "error on getting: " << url << ", error: " << res << std::endl;
       }
     }
   }
-  mc.toFile();
-
 }
 
 std::string FileDownloader::generateUid() {

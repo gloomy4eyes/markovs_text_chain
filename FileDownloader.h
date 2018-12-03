@@ -6,9 +6,11 @@
 
 //using CURL = void;
 
+class MarkovsChain;
+
 class FileDownloader {
  public:
-  explicit FileDownloader(std::list<std::string> & urls);
+  explicit FileDownloader(std::list<std::string> & urls, MarkovsChain & mc);
   ~FileDownloader();
 
   void download(const std::string& destinationPath);
@@ -18,6 +20,7 @@ class FileDownloader {
  private:
 //  CURL *_curl;
   std::list<std::string> _urls;
+  MarkovsChain & _mc;
 };
 
 #endif //MARKOVS_TEXT_CHAIN_FILEDOWNLOADER_H
