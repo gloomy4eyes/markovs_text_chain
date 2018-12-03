@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <cstring>
+#include <sstream>
 #include "Tokenizer.h"
 #include "MarkovsChain.h"
 
@@ -24,11 +25,6 @@ FileDownloader::~FileDownloader() {
 }
 
 void FileDownloader::download(const std::string &destinationPath) {
-
-//  auto result = mkdir(destinationPath.c_str(), S_IREAD | S_IWRITE);
-//  if (result != 0 && errno != EEXIST) {
-//    std::wcout << strerror(errno) << std::endl;
-//  }
   for (auto & url : _urls) {
     std::string readBuffer;
 
@@ -40,10 +36,14 @@ void FileDownloader::download(const std::string &destinationPath) {
       CURLcode res = curl_easy_perform(curl);
       if (res == CURLE_OK) {
         curl_easy_cleanup(curl);
-        auto tokens = Tokenizer::tokenize(readBuffer, ' ');
-        _mc.process(tokens);
+        std::stringstream ss(readBuffer);
+        std::string line;
+        while (std::getline(ss, line, '\n')) {
+          auto tokens = Tokenizer::tokenize(readBuffer, ' ');
+          _mc.process(tokens);
+        }
       } else {
-        std::cout << "error on getting: " << url << ", error: " << res << std::endl;
+        std::cerr << "error on getting: " << url << ", error: " << res << std::endl;
       }
     }
   }
