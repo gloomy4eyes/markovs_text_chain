@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include "Misc.h"
 
 bool isSym(char sym) {
   switch (sym) {
@@ -21,18 +22,17 @@ std::vector<std::string> Tokenizer::tokenize(const std::string &string, char sep
   size_t posBeg{0};
   size_t posEnd;
   std::vector<std::string> _tokens;
-  while (true) {
+  std::string tmp;
+  bool doWork{true};
+  while (doWork) {
     posEnd = string.find(separator, posBeg);
     if (posEnd == std::string::npos) {
-      break;
+      doWork = false;
+      tmp = string.substr(posBeg);
+    } else {
+      tmp = string.substr(posBeg, posEnd - posBeg);
     }
-    std::string tmp = string.substr(posBeg, posEnd - posBeg);
-    trim(tmp);
-//    for (auto it = tmp.begin(); it != tmp.end(); it++) {
-//      if (!isalnum(*it)) {
-//        tmp.erase(it);
-//      }
-//    }
+//    trim(tmp);
     if (!tmp.empty()) {
       _tokens.emplace_back(tmp);
     }
