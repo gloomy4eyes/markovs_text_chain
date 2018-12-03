@@ -43,6 +43,7 @@ std::vector<std::string> Tokenizer::tokenize(const std::string &string, char sep
       tmp = string.substr(posBeg, posEnd - posBeg);
     }
     trim(tmp);
+    toLower(tmp);
     if (!tmp.empty()) {
       _tokens.emplace_back(tmp);
     }
@@ -78,5 +79,22 @@ void Tokenizer::trim(std::string &str) {
   if (++posE > 0) {
     str.erase(posE);
   }
+}
+
+typedef std::string::value_type char_t;
+char_t upcase( char_t ch )
+{
+  return std::use_facet< std::ctype< char_t > >( std::locale() ).toupper( ch );
+}
+
+char_t lowcase( char_t ch )
+{
+  return std::use_facet< std::ctype< char_t > >( std::locale() ).tolower( ch );
+}
+
+void Tokenizer::toLower(std::string &str) {
+  std::string result;
+  std::transform(str.begin(), str.end(), std::back_inserter(result), lowcase);
+  str = result;
 }
 

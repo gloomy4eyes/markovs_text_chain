@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   MarkovsChain mc(0);
   FileDownloader fd(urls, mc);
   fd.download("urls");
-  mc.generate("где", 5);
+  mc.generate("может", 100);
 
   return 0;
 }
