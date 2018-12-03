@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <random>
 
 class MarkovsChain {
  public:
@@ -16,11 +17,14 @@ class MarkovsChain {
 
   void process(const std::vector<std::string> &vec);
 
-  void toFile();
+  void generate(const std::string &phrase, size_t chainCount);
+
+  void print();
+  void toFile(const std::string &path);
 
  private:
   std::unordered_map<std::string, std::vector<std::string>> _chain;
-  bool isNewDict;
+  std::random_device _rd;
 
   std::vector<std::string> _findAllNext(const std::vector<std::string> &vec, const std::string & word);
 };
