@@ -12,7 +12,17 @@ bool isSym(char sym) {
     case '.':
     case ',':
     case '<':
-    case '>':return true;
+    case '>':
+    case ':':
+    case ';':
+    case '!':
+    case '?':
+    case '/':
+    case '\\':
+    case '-':
+    case '_':
+    case '$':
+      return true;
     default:return false;
   }
 }
@@ -32,7 +42,7 @@ std::vector<std::string> Tokenizer::tokenize(const std::string &string, char sep
     } else {
       tmp = string.substr(posBeg, posEnd - posBeg);
     }
-//    trim(tmp);
+    trim(tmp);
     if (!tmp.empty()) {
       _tokens.emplace_back(tmp);
     }
@@ -43,12 +53,12 @@ std::vector<std::string> Tokenizer::tokenize(const std::string &string, char sep
 }
 
 void Tokenizer::trim(std::string &str) {
-  return;
+//  return;
   size_t posB{0};
   size_t posE{0};
 
   auto f = str.size();
-  for (size_t i = 0; i < f; ++i) {
+  for (size_t i = 0; i < f - 1; ++i) {
     if (!isSym(str[i])) {
       posB = i;
       break;
@@ -65,7 +75,7 @@ void Tokenizer::trim(std::string &str) {
   if (posB > 0) {
     str.erase(0, posB);
   }
-  if (posE > 0) {
+  if (++posE > 0) {
     str.erase(posE);
   }
 }
