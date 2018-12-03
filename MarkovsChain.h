@@ -12,7 +12,7 @@
 
 class MarkovsChain {
  public:
-  MarkovsChain();
+  explicit MarkovsChain(size_t chainCount);
   ~MarkovsChain();
 
   void process(const std::vector<std::string> &vec);
@@ -25,6 +25,7 @@ class MarkovsChain {
  private:
   std::unordered_map<std::string, std::vector<std::string>> _chain;
   std::random_device _rd;
+  size_t _chainCount;
 
   std::vector<std::string> _findAllNext(const std::vector<std::string> &vec, const std::string & word);
 };

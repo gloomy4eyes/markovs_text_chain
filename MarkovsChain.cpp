@@ -7,12 +7,20 @@
 #include <iostream>
 #include "Tokenizer.h"
 #include <fstream>
+#include <deque>
 
-MarkovsChain::MarkovsChain() {
+MarkovsChain::MarkovsChain(size_t chainCount) : _chainCount(chainCount) {
 
 }
+
 void MarkovsChain::process(const std::vector<std::string> &vec) {
 
+  std::deque<std::string> dqs;
+  for (auto it = vec.begin(); it != vec.end(); ++it) {
+    for (int i = 0; i < _chainCount; ++i) {
+
+    }
+  }
   for (auto & word : vec) {
 //    _chain.emplace(word);
     _chain[word];
@@ -35,9 +43,6 @@ void MarkovsChain::print() {
         std::cout << " | ";
       }
     }
-//    for (auto & w : e.second) {
-//      std::cout << w << " | ";
-//    }
     std::cout << std::endl;
   }
 }
@@ -70,7 +75,7 @@ void MarkovsChain::generate(const std::string &phrase, size_t chainCount) {
     }
     auto &tv = it->second;
     std::uniform_int_distribution<int> dist(0, tv.size() - 1);
-    size_t randomIndex = dist(_rd);
+    size_t randomIndex = static_cast<size_t>(dist(_rd));
     str = tv[randomIndex];
     std::cout << str << " ";
     --chainCount;
@@ -89,9 +94,6 @@ void MarkovsChain::toFile(const std::string &path) {
         ofs << " | ";
       }
     }
-//    for (auto & w : e.second) {
-//      std::cout << w << " | ";
-//    }
     ofs << std::endl;
   }
 }
