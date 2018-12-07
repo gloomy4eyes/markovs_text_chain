@@ -4,81 +4,31 @@
 #include <cstring>
 #include "Misc.h"
 
-bool isSym(char sym) {
-  switch (sym) {
-    case '\r':
-    case '\n':
-    case ' ':
-    case '.':
-    case ',':
-    case '<':
-    case '>':
-    case ':':
-    case ';':
-    case '!':
-    case '?':
-    case '/':
-    case '\\':
-    case '-':
-    case '_':
-    case '$':
-      return true;
-    default:return false;
-  }
-}
+using char_t = std::string::value_type;
 
-std::vector<std::string> Tokenizer::tokenize(const std::string &string, char separator) {
+bool isSym(char sym);
+char_t lowcase( char_t ch );
+
+std::vector<std::string> Tokenizer::tokenize(const std::string &string) {
   assert(!string.empty());
-  size_t posBeg{0};
-  size_t posEnd;
-  std::vector<std::string> _tokens;
-  std::string tmp;
-  bool doWork{true};
-  while (doWork) {
-    posEnd = string.find(separator, posBeg);
-    if (posEnd == std::string::npos) {
-      doWork = false;
-      tmp = string.substr(posBeg);
-    } else {
-      tmp = string.substr(posBeg, posEnd - posBeg);
-    }
-    trim(tmp);
-    toLower(tmp);
-    if (!tmp.empty()) {
-      _tokens.emplace_back(tmp);
-    }
 
-    posBeg = ++posEnd;
+  std::string chunk;
+  std::vector<std::string> _tokens;
+  for (auto & it : string) {
+    if (!isSym(it)) {
+      chunk.push_back(lowcase(it));
+    } else {
+      if (!chunk.empty()) {
+        _tokens.push_back(chunk);
+        chunk.clear();
+      }
+    }
+  }
+  if (!chunk.empty()) {
+    _tokens.push_back(chunk);
+    chunk.clear();
   }
   return _tokens;
-}
-
-void Tokenizer::trim(std::string &str) {
-//  return;
-  size_t posB{0};
-  size_t posE{0};
-
-  auto f = str.size();
-  for (size_t i = 0; i < f - 1; ++i) {
-    if (!isSym(str[i])) {
-      posB = i;
-      break;
-    }
-  }
-
-  for (size_t i = f - 1; i > posB ; --i) {
-    if (!isSym(str[i])) {
-      posE = i;
-      break;
-    }
-  }
-
-  if (posB > 0) {
-    str.erase(0, posB);
-  }
-  if (++posE > 0) {
-    str.erase(posE);
-  }
 }
 
 typedef std::string::value_type char_t;
@@ -98,3 +48,50 @@ void Tokenizer::toLower(std::string &str) {
   str = result;
 }
 
+bool isSym(char sym) {
+  switch (sym) {
+    case '\a':
+    case '\b':
+    case '\f':
+    case '\n':
+    case '\r':
+    case '\t':
+    case '\v':
+    case ' ':
+    case '.':
+    case ',':
+    case '<':
+    case '>':
+    case ':':
+    case ';':
+    case '!':
+    case '?':
+    case '/':
+    case '\\':
+    case '|':
+    case ')':
+    case '(':
+    case '{':
+    case '}':
+    case '[':
+    case ']':
+    case '-':
+    case '_':
+    case '*':
+    case '#':
+    case '@':
+    case '"':
+    case '&':
+    case '=':
+    case '+':
+    case '$':
+    case '%':
+    case '\'':
+//    case '\200':
+//    case '\224':
+//    case '\342':
+      return true;
+    default:
+      return false;
+  }
+}
