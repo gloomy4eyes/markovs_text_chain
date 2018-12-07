@@ -20,14 +20,20 @@ class MarkovsChain {
   void generate(const std::string &phrase, size_t chainCount);
 
   void print();
+  void print(std::ostream & ostr);
+
   void toFile(const std::string &path);
 
+  void dump(const std::string &path);
+  void riseDump(const std::string &path);
+
  private:
-  std::unordered_map<std::string, std::vector<std::string>> _chain;
+  std::unordered_map<std::string, std::vector<size_t >> _chain;
+  std::vector<std::string> _dictionary;
   std::random_device _rd;
   size_t _chainCount;
 
-  std::vector<std::string> _findAllNext(const std::vector<std::string> &vec, const std::string & word);
+  std::vector<size_t> _findAllNext(const std::vector<std::string> &vec, const std::string &word);
 };
 
 #endif //MARKOVS_TEXT_CHAIN_MARKOVSCHAIN_H
