@@ -10,10 +10,10 @@
 #include "Tokenizer.h"
 #include "MarkovsChain.h"
 
-static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
-{
-  ((std::string*)userp)->append((char *)contents, size * nmemb);
-  return size * nmemb;
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
+  size_t s = size * nmemb;
+  ((std::stringstream*)userp)->write((char *)contents, s);
+  return s;
 }
 
 FileDownloader::FileDownloader(std::list<std::string> &urls, MarkovsChain & mc) : /*_curl(curl_easy_init()),*/ _urls(urls), _mc(mc) {
@@ -26,21 +26,22 @@ FileDownloader::~FileDownloader() {
 
 void FileDownloader::download(const std::string &destinationPath) {
   for (auto & url : _urls) {
-    std::string readBuffer;
-
     CURL *curl = curl_easy_init();
     if(curl) {
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+      std::string readBuffer;
+      std::stringstream ss;
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ss);
       CURLcode res = curl_easy_perform(curl);
       if (res == CURLE_OK) {
         curl_easy_cleanup(curl);
-        std::stringstream ss(readBuffer);
         std::string line;
-        while (std::getline(ss, line, '\n')) {
-          auto tokens = Tokenizer::tokenize(readBuffer, ' ');
-          _mc.process(tokens);
+        while (std::getline(ss, line)) {
+          if (!line.empty()) {
+            auto tokens = Tokenizer::tokenize(line);
+            _mc.process(tokens);
+          }
         }
       } else {
         std::cerr << "error on getting: " << url << ", error: " << res << std::endl;
