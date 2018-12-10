@@ -1,15 +1,17 @@
-#include <algorithm>
 #include "MarkovsChain.h"
+
+#include <algorithm>
 #include <iostream>
-#include "Tokenizer.h"
 #include <fstream>
 #include <deque>
-#include <algorithm>
 #include <cassert>
+#include <sstream>
+
+#include "tokenizer/Tokenizer.h"
 
 MarkovsChain::MarkovsChain(size_t chainCount) : _chainCount(chainCount) {}
 
-void MarkovsChain::process(const std::vector<std::string> &vec) {
+void MarkovsChain::learn(const std::vector<std::string> &vec) {
   for (auto & word : vec) {
     auto iterator = _chain.find(word);
     if (iterator == std::end(_chain)) {
@@ -42,7 +44,8 @@ std::vector<size_t> MarkovsChain::_findAllNext(const std::vector<std::string> &v
   }
   return retV;
 }
-void MarkovsChain::generate(const std::string &phrase, size_t chainCount) {
+
+std::ostream & MarkovsChain::generate(const std::string &phrase, size_t chainCount) {
   assert(!phrase.empty());
 
   auto tokens = Tokenizer::tokenize(phrase);
@@ -50,8 +53,9 @@ void MarkovsChain::generate(const std::string &phrase, size_t chainCount) {
 
   auto str = tokens.back();
   assert(!str.empty());
-
-  std::cout << "START " << phrase << " ";
+  std::stringstream ss;
+  auto &ostr = ss;
+  ostr << "START " << phrase << " ";
 
   try {
     while (chainCount > 0) {
@@ -60,18 +64,18 @@ void MarkovsChain::generate(const std::string &phrase, size_t chainCount) {
         std::uniform_int_distribution<int> dist(0, it.size() - 1);
         auto randomIndex = static_cast<size_t>(dist(_rd));
         str = _dictionary.at(it.at(randomIndex));
-        std::cout << str << " ";
+        ostr << str << " ";
         --chainCount;
       } else {
-        std::cout << " NO MORE WORDS.";
+        ostr << " NO MORE WORDS.";
         break;
       }
     }
   } catch (const std::out_of_range &) {
-    std::cerr << "dont know word: " << str;
+    ostr << "dont know word: " << str;
   }
 
-  std::cout << " END" << std::endl;
+  ostr << " END" << std::endl;
 }
 
 void MarkovsChain::toFile(const std::string &path) {
@@ -91,10 +95,11 @@ void MarkovsChain::print() {
 void MarkovsChain::print(std::ostream &ostr) {
   for (auto & e : _chain) {
     ostr << e.first << " : ";
-    for (auto it = std::begin(e.second); it != std::end(e.second); ++it) {
+    auto &v = e.second;
+    for (auto it = std::begin(v); it != std::end(v); ++it) {
       auto iit = it;
       ostr << _dictionary.at(*it);
-      if (++iit != std::end(e.second)) {
+      if (++iit != std::end(v)) {
         ostr << "|";
       }
     }
@@ -117,6 +122,7 @@ void MarkovsChain::dump(const std::string &path) {
         ofs << "|";
       }
     }
+    ofs << std::endl;
   }
   ofs << "\nDICTIONARY\n";
   for (auto it  = std::begin(_dictionary); it != std::end(_dictionary); ++it) {
@@ -136,40 +142,33 @@ void MarkovsChain::riseDump(const std::string &path) {
   std::string line;
   bool isDic{false};
 
+  _chain.clear();
+  _dictionary.clear();
   while (std::getline(ifs, line)) {
     if (!line.empty()) {
       if (!isDic) {
         auto iter = line.find_first_of(':');
         if (iter != std::string::npos) {
-          // fill chain
+          riseChainPart(line);
         } else {
           if(line == "DICTIONARY") {
             isDic = true;
           }
         }
       } else {
-        // fill dictionary
+        _dictionary = Tokenizer::tokenize(line);
       }
     }
   }
+}
 
-  for (auto& c : _chain) {
-    ofs << c.first << ":";
-    auto &v = c.second;
-    for (auto it  = std::begin(v); it != std::end(v); ++it) {
-      auto iit = it;
-      ofs << *it;
-      if (++iit != std::end(v)) {
-        ofs << "|";
-      }
+void MarkovsChain::riseChainPart(const std::string &line) {
+  auto v = Tokenizer::tokenize(line);
+  if (!v.empty()) {
+    auto &str = *v.begin();
+    _chain.emplace(str, std::vector<size_t >());
+    for (auto it = v.begin() + 1; it != v.end(); ++it) {
+      _chain.at(str).push_back(stoi(*it));
     }
   }
-  ofs << "\nDICTIONARY\n";
-  for (auto it  = std::begin(_dictionary); it != std::end(_dictionary); ++it) {
-    ofs << *it;
-    if (it + 1 != std::end(_dictionary)) {
-      ofs << "|";
-    }
-  }
-  ofs << std::endl;
 }
