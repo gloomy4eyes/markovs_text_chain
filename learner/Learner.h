@@ -16,6 +16,7 @@ class Learner {
  private:
   arguments _args;
 
+
 };
 
 #endif //MARKOVS_TEXT_CHAIN_LEARNER_H

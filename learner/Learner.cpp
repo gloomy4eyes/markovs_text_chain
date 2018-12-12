@@ -1,3 +1,5 @@
+#include <fstream>
+#include <cstring>
 #include "Learner.h"
 
 #include "FileDownloader.h"
@@ -44,17 +46,19 @@ void learn(const std::string &data, MarkovsChain &mc) {
 }
 
 void Learner::run() {
+  std::ifstream ifs(_args.at(urlsArg));
+  if (!ifs.is_open()) {
+    throw std::runtime_error(std::string("error on urls file open - ") + strerror(errno));
+  }
 
   std::vector<std::string> urls;
-//  urls.emplace_back("file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tu1.txt");
-  urls.emplace_back("file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tu2.txt");
-  urls.emplace_back("file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tu3.txt");
-  urls.emplace_back("file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tu4.txt");
-  urls.emplace_back("https://www.litmir.me/br/?b=631463");
-  urls.emplace_back("https://libreed.ru/sataninskoe-tango.html/[1-6]");
-  urls.emplace_back("https://libreed.ru/post-sdal.html/[1-25]");
-  urls.emplace_back("https://habr.com/post/138862/");
-//  std::list<std::string> urls{"file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tutest.txt"};
+  std::string line;
+  while (std::getline(ifs, line)) {
+    if (line.back() == '\r') {
+      line.pop_back();
+    }
+    urls.push_back(line);
+  }
 
   MarkovsChain mc(std::stoull(_args.at(chainCountArg)));
   FileDownloader fd(urls);
