@@ -16,7 +16,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
 
-include_directories(${PROJECT_ROOT})
+find_package(LIBTOKENIZER REQUIRED)
+find_package(LIBMARKOVS_CHAIN REQUIRED)
+
+include_directories(${LIBTOKENIZER_INCLUDE_DIR})
+include_directories(${LIBMARKOVS_CHAIN_INCLUDE_DIR})
 
 set(SOURCES
     main.cpp
@@ -28,7 +32,5 @@ set(SOURCES
     Learner.h
     )
 
-link_directories(${LIBRARIES_DIR})
-
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} -lcurl -ltokenizer -lmarkovs_chain)
+target_link_libraries(${PROJECT_NAME} -lcurl ${LIBMARKOVS_CHAIN_LIB} ${LIBTOKENIZER_LIB})

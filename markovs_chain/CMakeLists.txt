@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(markovs_chain)
 
-set(dir ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
+set(dir ${LIBRARIES_DIR})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${dir})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${dir})
@@ -22,17 +22,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
 
-include_directories(${PROJECT_ROOT})
+
+find_package(LIBTOKENIZER REQUIRED)
+include_directories(${LIBTOKENIZER_INCLUDE_DIR})
 
 set(SOURCES
     MarkovsChain.h
     MarkovsChain.cpp
     )
 
-link_directories(
-    ${PROJECT_ROOT}/lib
-)
-
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
-target_link_libraries(${PROJECT_NAME} -ltokenizer)
+target_link_libraries(${PROJECT_NAME} ${LIBTOKENIZER_LIB})
 
