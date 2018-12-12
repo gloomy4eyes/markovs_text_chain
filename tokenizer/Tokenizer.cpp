@@ -26,6 +26,7 @@ std::string wstringToString(const std::wstring &str) {
 
 std::string toLower(std::string & str) {
   std::wstring tmpWStr = stringToWstring(str);
+  std::wstring tmpWStr2;
   for (size_t i = 0; i < tmpWStr.size(); ++i) {
     for (size_t j = 0; j < DIC_SIZE; ++j) {
       if (tmpWStr[i] == UPPER_DIC[j]) {
@@ -34,7 +35,13 @@ std::string toLower(std::string & str) {
       }
     }
   }
-  std::string retStr = wstringToString(tmpWStr);
+  for (size_t i = 0; i < tmpWStr.size(); ++i) {
+    if (iswalpha(tmpWStr[i])) {
+      tmpWStr2.push_back(tmpWStr[i]);
+    }
+  }
+
+  std::string retStr = wstringToString(tmpWStr2);
   return retStr;
 }
 
