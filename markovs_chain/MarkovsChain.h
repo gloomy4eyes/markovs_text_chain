@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <random>
+#include <deque>
 
 class MarkovsChain {
  public:
@@ -26,11 +27,12 @@ class MarkovsChain {
  private:
   std::unordered_map<std::string, std::vector<size_t>> _chain;
   std::vector<std::string> _dictionary;
+  std::deque<std::string> _window;
   std::random_device _rd;
   size_t _chainCount;
 
   std::vector<size_t> _findAllNext(const std::vector<std::string> &vec, const std::string &word);
-  void riseChainPart(const std::string &line);
+  void _riseChainPart(const std::string &line);
 
 };
 

@@ -2,14 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(tokenizer)
 
-set(SOURCES
-    Tokenizer.h
-    Tokenizer.cpp
-    )
-
-add_library(${PROJECT_NAME} STATIC ${SOURCES})
-
-set(dir ../lib)
+set(dir ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${dir})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${dir})
@@ -28,3 +21,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${dir})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
+
+set(SOURCES
+    Tokenizer.h
+    Tokenizer.cpp
+    )
+
+add_library(${PROJECT_NAME} STATIC ${SOURCES})
+

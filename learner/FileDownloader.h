@@ -13,15 +13,15 @@ class FileDownloader {
   explicit FileDownloader(std::vector<std::string> &urls);
   ~FileDownloader();
 
-  std::istream &download();
+  std::string download();
   bool isDone();
 
-  static std::istream & download(const std::string& url);
+  static std::string download(const std::string &url);
 
  private:
   std::vector<std::string> _urls;
   bool _done;
-  std::vector<std::string>::iterator _curItem;
+  size_t _index;
 
 };
 

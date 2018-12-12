@@ -12,12 +12,28 @@
 MarkovsChain::MarkovsChain(size_t chainCount) : _chainCount(chainCount) {}
 
 void MarkovsChain::learn(const std::vector<std::string> &vec) {
-  for (auto & word : vec) {
-    auto iterator = _chain.find(word);
+//  assert(vec.size() > _chainCount);
+  if (vec.size() < _chainCount) {
+    std::cerr << "to few data" << std::endl;
+    return;
+  }
+  _window.clear();
+  for (size_t i = 0; i < _chainCount; ++i) {
+    _window.push_back(vec[i]);
+  }
+  for (auto it = std::begin(vec) + _chainCount; it != std::end(vec); ++it) {
+    auto str = Tokenizer::join(_window, ",");
+    auto iterator = _chain.find(str);
     if (iterator == std::end(_chain)) {
-      _dictionary.push_back(word);
-      _chain.emplace(word, std::vector<size_t>());
+      for (auto & word : _window) {
+        if (std::find(std::begin(_dictionary), std::end(_dictionary), word) == std::end(_dictionary)) {
+          _dictionary.push_back(word);
+        }
+      }
+      _chain.emplace(str, std::vector<size_t>());
     }
+    _window.pop_front();
+    _window.push_back(*it);
   }
 
   for (auto & t : _chain) {
@@ -32,10 +48,13 @@ MarkovsChain::~MarkovsChain() {}
 std::vector<size_t> MarkovsChain::_findAllNext(const std::vector<std::string> &vec, const std::string &word) {
   auto vecIt = vec.begin();
 
+  auto v = Tokenizer::split(word, ",");
+
   std::vector<size_t> retV;
   while (vecIt != std::end(vec)) {
-    vecIt = std::find(vecIt, std::end(vec), word);
+    vecIt = std::search(std::begin(vec) + std::distance(std::begin(vec), vecIt), std::end(vec), std::begin(v), std::end(v));
     if (vecIt != std::end(vec) && (++vecIt != std::end(vec))) {
+      std::string strs =  *vecIt;
       auto found = std::find(std::begin(_dictionary), std::end(_dictionary), *vecIt);
       if (found != std::end(_dictionary)) {
         retV.push_back((size_t)(found - std::begin(_dictionary)));
@@ -53,7 +72,7 @@ std::ostream & MarkovsChain::generate(const std::string &phrase, size_t chainCou
 
   auto str = tokens.back();
   assert(!str.empty());
-  std::stringstream ss;
+  std::ostringstream ss;
   auto &ostr = ss;
   ostr << "START " << phrase << " ";
 
@@ -149,7 +168,7 @@ void MarkovsChain::riseDump(const std::string &path) {
       if (!isDic) {
         auto iter = line.find_first_of(':');
         if (iter != std::string::npos) {
-          riseChainPart(line);
+          _riseChainPart(line);
         } else {
           if(line == "DICTIONARY") {
             isDic = true;
@@ -162,8 +181,8 @@ void MarkovsChain::riseDump(const std::string &path) {
   }
 }
 
-void MarkovsChain::riseChainPart(const std::string &line) {
-  auto v = Tokenizer::tokenize(line);
+void MarkovsChain::_riseChainPart(const std::string &line) {
+  auto v = Tokenizer::split(line, ":");
   if (!v.empty()) {
     auto &str = *v.begin();
     _chain.emplace(str, std::vector<size_t >());
@@ -172,3 +191,4 @@ void MarkovsChain::riseChainPart(const std::string &line) {
     }
   }
 }
+

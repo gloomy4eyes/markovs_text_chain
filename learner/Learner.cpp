@@ -26,24 +26,27 @@ arguments parseCommandArgs(int argc, char* argv[]){
     }
   }
 
-  if (!checkArgument(cm, urlsArg) || !checkArgument(cm, chainCountArg) || !checkArgument(cm, mcdumpArg)) {
+  if (!checkArgument(cm, urlsArg) || !checkArgument(cm, chainCountArg) || !checkArgument(cm, mcdumpArg) || std::stoull(cm.at(chainCountArg)) < 1) {
     throw std::runtime_error("usage");
   }
 
   return cm;
 }
 
-void learn(std::istream & istr, MarkovsChain & mc) {
+void learn(const std::string &data, MarkovsChain &mc) {
+  std::istringstream istr(data);
   std::string line;
   while (std::getline(istr, line)) {
-    mc.learn(Tokenizer::tokenize(line));
+    if (!line.empty()) {
+      mc.learn(Tokenizer::tokenize(line));
+    }
   }
 }
 
 void Learner::run() {
 
   std::vector<std::string> urls;
-  urls.emplace_back("file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tu1.txt");
+//  urls.emplace_back("file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tu1.txt");
   urls.emplace_back("file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tu2.txt");
   urls.emplace_back("file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tu3.txt");
   urls.emplace_back("file:///mnt/d/workspace/cpp/markovs_text_chain/test_urls/tu4.txt");

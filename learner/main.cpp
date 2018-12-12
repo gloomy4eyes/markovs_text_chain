@@ -4,9 +4,7 @@
 void help();
 
 int main(int argc, char *argv[]) {
-  setlocale(LC_ALL, "");
-  setlocale(LC_CTYPE, "C");
-
+  setlocale(LC_ALL, "en_US.UTF8");
   try {
     Learner learner(argc, argv);
     learner.run();
@@ -19,5 +17,5 @@ int main(int argc, char *argv[]) {
 }
 
 void help() {
-  std::cout << "usage:\n\t--urls \'file with urls\' --chaincount \' \' --mcdump \'file for markovs chain dump\'";
+  std::cout << "usage:\n\t--urls \'file with urls\' --chaincount \' positive digital\' --mcdump \'file for markovs chain dump\'";
 }
