@@ -11,7 +11,6 @@
 MarkovsChain::MarkovsChain(size_t chainCount) : _chainCount(chainCount) {}
 
 void MarkovsChain::learn(const std::vector<std::string> &vec) {
-//  assert(vec.size() > _chainCount);
   if (vec.size() < _chainCount) {
     std::cerr << "to few data" << std::endl;
     return;
@@ -72,6 +71,10 @@ std::string MarkovsChain::generate(const std::string &phrase, size_t sequenceCou
   assert(!phrase.empty());
   if (phrase.empty()) {
     return {};
+  }
+  if (_chainCount == 0) {
+    auto vec = Tokenizer::split(_chain.begin()->first, ",");
+    _chainCount = vec.size();
   }
 
   auto tokens = Tokenizer::tokenize(phrase);
