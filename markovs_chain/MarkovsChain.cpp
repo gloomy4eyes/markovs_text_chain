@@ -96,6 +96,7 @@ std::string MarkovsChain::generate(const std::string &phrase, size_t sequenceCou
         ostr << str << " ";
         deq.pop_front();
         deq.push_back(str);
+        str = Tokenizer::join(deq, ",");
         --sequenceCount;
       } else {
         ostr << " NO MORE WORDS.";
