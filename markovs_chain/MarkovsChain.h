@@ -14,7 +14,7 @@ class MarkovsChain {
 
   void learn(const std::vector<std::string> &vec);
 
-  std::ostream & generate(const std::string &phrase, size_t chainCount);
+  std::string generate(const std::string &phrase, size_t sequenceCount);
 
   void print();
   void print(std::ostream & ostr);

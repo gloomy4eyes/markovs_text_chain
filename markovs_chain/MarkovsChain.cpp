@@ -3,11 +3,10 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <deque>
 #include <cassert>
 #include <sstream>
 
-#include "tokenizer/Tokenizer.h"
+#include "Tokenizer.h"
 
 MarkovsChain::MarkovsChain(size_t chainCount) : _chainCount(chainCount) {}
 
@@ -53,38 +52,48 @@ std::vector<size_t> MarkovsChain::_findAllNext(const std::vector<std::string> &v
   std::vector<size_t> retV;
   while (vecIt != std::end(vec)) {
     vecIt = std::search(std::begin(vec) + std::distance(std::begin(vec), vecIt), std::end(vec), std::begin(v), std::end(v));
-    if (vecIt != std::end(vec) && (++vecIt != std::end(vec))) {
-      std::string strs =  *vecIt;
-      auto found = std::find(std::begin(_dictionary), std::end(_dictionary), *vecIt);
-      if (found != std::end(_dictionary)) {
-        retV.push_back((size_t)(found - std::begin(_dictionary)));
+    if (vecIt != std::end(vec)) {
+      if (((vecIt + _chainCount) != std::end(vec))) {
+        vecIt += _chainCount;
+        std::string strs =  *vecIt;
+        auto found = std::find(std::begin(_dictionary), std::end(_dictionary), *vecIt);
+        if (found != std::end(_dictionary)) {
+          retV.push_back((size_t)(found - std::begin(_dictionary)));
+        }
+      } else {
+        break;
       }
     }
   }
   return retV;
 }
 
-std::ostream & MarkovsChain::generate(const std::string &phrase, size_t chainCount) {
+std::string MarkovsChain::generate(const std::string &phrase, size_t sequenceCount) {
   assert(!phrase.empty());
+  if (phrase.empty()) {
+    return {};
+  }
 
   auto tokens = Tokenizer::tokenize(phrase);
   assert(!tokens.empty());
-
-  auto str = tokens.back();
+  std::deque<std::string> deq(std::begin(tokens) + tokens.size() - _chainCount, std::end(tokens));
+  std::string str = Tokenizer::join(deq, ",");
   assert(!str.empty());
   std::ostringstream ss;
   auto &ostr = ss;
   ostr << "START " << phrase << " ";
 
   try {
-    while (chainCount > 0) {
+    while (sequenceCount > 0) {
       auto &it = _chain.at(str);
       if (!it.empty()) {
         std::uniform_int_distribution<int> dist(0, it.size() - 1);
         auto randomIndex = static_cast<size_t>(dist(_rd));
         str = _dictionary.at(it.at(randomIndex));
         ostr << str << " ";
-        --chainCount;
+        deq.pop_front();
+        deq.push_back(str);
+        --sequenceCount;
       } else {
         ostr << " NO MORE WORDS.";
         break;
@@ -95,6 +104,7 @@ std::ostream & MarkovsChain::generate(const std::string &phrase, size_t chainCou
   }
 
   ostr << " END" << std::endl;
+  return ss.str();
 }
 
 void MarkovsChain::toFile(const std::string &path) {
@@ -175,7 +185,7 @@ void MarkovsChain::riseDump(const std::string &path) {
           }
         }
       } else {
-        _dictionary = Tokenizer::tokenize(line);
+        _dictionary = Tokenizer::split(line, "|");
       }
     }
   }
