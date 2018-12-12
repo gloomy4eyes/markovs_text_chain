@@ -7,8 +7,8 @@
 #include <fstream>
 #include <cstring>
 #include <sstream>
-#include "tokenizer/Tokenizer.h"
-#include "markovs_chain/MarkovsChain.h"
+#include "Tokenizer.h"
+#include "MarkovsChain.h"
 #include "Curl.h"
 
 FileDownloader::FileDownloader(std::vector<std::string> &urls) : _urls(urls), _done(false), _index(0) {}

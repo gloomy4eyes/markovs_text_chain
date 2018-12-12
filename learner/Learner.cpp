@@ -1,8 +1,8 @@
 #include "Learner.h"
 
 #include "FileDownloader.h"
-#include "markovs_chain/MarkovsChain.h"
-#include "tokenizer/Tokenizer.h"
+#include "MarkovsChain.h"
+#include "Tokenizer.h"
 
 constexpr auto chainCountArg = "--chaincount";
 constexpr auto urlsArg = "--urls";
