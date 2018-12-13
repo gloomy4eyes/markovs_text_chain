@@ -32,5 +32,8 @@ set(SOURCES
     Learner.h
     )
 
+link_directories(${LIBTOKENIZER_LIB_DIR})
+link_directories(${LIBMARKOVS_CHAIN_LIB_DIR})
+
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} -lcurl ${LIBMARKOVS_CHAIN_LIB} ${LIBTOKENIZER_LIB})

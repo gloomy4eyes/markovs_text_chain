@@ -31,6 +31,8 @@ set(SOURCES
     MarkovsChain.cpp
     )
 
+link_directories(${LIBTOKENIZER_LIB_DIR})
+
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${LIBTOKENIZER_LIB})
 
