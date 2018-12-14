@@ -10,6 +10,21 @@
 
 MarkovsChain::MarkovsChain(size_t chainCount) : _chainCount(chainCount) {}
 
+void MarkovsChain::_addChainPart(const std::string &it) {
+  auto str = Tokenizer::join(_window, ",");
+  auto iterator = _chain.find(str);
+  if (iterator == std::end(_chain)) {
+    for (auto & word : _window) {
+      if (std::find(std::begin(_dictionary), std::end(_dictionary), word) == std::end(_dictionary)) {
+        _dictionary.push_back(word);
+      }
+    }
+    _chain.emplace(str, std::vector<size_t>());
+  }
+  _window.pop_front();
+  _window.push_back(it);
+}
+
 void MarkovsChain::learn(const std::vector<std::string> &vec) {
   if (vec.size() < _chainCount) {
     std::cerr << "to few data" << std::endl;
@@ -20,20 +35,8 @@ void MarkovsChain::learn(const std::vector<std::string> &vec) {
     _window.push_back(vec[i]);
   }
   for (auto it = std::begin(vec) + _chainCount; it != std::end(vec); ++it) {
-    auto str = Tokenizer::join(_window, ",");
-    auto iterator = _chain.find(str);
-    if (iterator == std::end(_chain)) {
-      for (auto & word : _window) {
-        if (std::find(std::begin(_dictionary), std::end(_dictionary), word) == std::end(_dictionary)) {
-          _dictionary.push_back(word);
-        }
-      }
-      _chain.emplace(str, std::vector<size_t>());
-    }
-    _window.pop_front();
-    _window.push_back(*it);
+    _addChainPart(*it);
   }
-
   for (auto & t : _chain) {
     for (auto & an : _findAllNext(vec, t.first)) {
       t.second.emplace_back(an) ;
@@ -201,8 +204,12 @@ void MarkovsChain::_riseChainPart(const std::string &line) {
     auto &str = *v.begin();
     _chain.emplace(str, std::vector<size_t >());
     for (auto it = v.begin() + 1; it != v.end(); ++it) {
-      _chain.at(str).push_back(stoi(*it));
+      auto s = Tokenizer::split(*it, "|");
+      for (auto iit = std::begin(s); iit != std::end(s); ++iit) {
+        _chain.at(str).push_back(stoi(*iit));
+      }
     }
   }
 }
+
 
