@@ -5,6 +5,9 @@
 #include <codecvt>
 #include <locale>
 #include <deque>
+#include <unordered_map>
+
+//std::unordered_map<wchar_t , wchar_t > DIC;
 
 constexpr size_t DIC_SIZE = 59;
 constexpr auto UPPER_DIC(L"ABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ");
@@ -24,36 +27,27 @@ std::string wstringToString(const std::wstring &str) {
   return converted_str;
 }
 
-std::string toLower(std::string & str) {
-  std::wstring tmpWStr = stringToWstring(str);
-  std::wstring tmpWStr2;
-  for (size_t i = 0; i < tmpWStr.size(); ++i) {
+std::string toLower(std::wstring & str) {
+  for (size_t i = 0; i < str.size(); ++i) {
     for (size_t j = 0; j < DIC_SIZE; ++j) {
-      if (tmpWStr[i] == UPPER_DIC[j]) {
-        tmpWStr[i] = LOWER_DIC[j];
+      if (str[i] == UPPER_DIC[j]) {
+        str[i] = LOWER_DIC[j];
         break;
       }
     }
   }
-  for (size_t i = 0; i < tmpWStr.size(); ++i) {
-    if (iswalpha(tmpWStr[i])) {
-      tmpWStr2.push_back(tmpWStr[i]);
-    }
-  }
-
-  std::string retStr = wstringToString(tmpWStr2);
+  std::string retStr = wstringToString(str);
   return retStr;
 }
-
-bool isSym(char sym);
 
 std::vector<std::string> Tokenizer::tokenize(const std::string &string) {
   assert(!string.empty());
 
-  std::string chunk;
+  std::wstring a = stringToWstring(string);
   std::vector<std::string> _tokens;
-  for (auto &it : string) {
-    if (!isSym(it)) {
+  std::wstring chunk;
+  for (auto &it : a) {
+    if (iswalpha(it)) {
       chunk.push_back(it);
     } else {
       if (!chunk.empty()) {
@@ -113,61 +107,4 @@ std::string Tokenizer::join(const std::deque<std::string> &dec, const std::strin
     }
   }
   return s;
-}
-
-bool isSym(char sym) {
-  switch (sym) {
-  case '`':
-  case '~':
-  case '!':
-  case '@':
-  case '"':
-  case '#':
-  case '$':
-  case ';':
-  case '%':
-  case '^':
-  case ':':
-  case '&':
-  case '?':
-  case '*':
-
-  case '(':
-  case ')':
-
-  case '-':
-  case '_':
-
-  case '+':
-  case '=':
-
-  case '{':
-  case '}':
-  case '[':
-  case ']':
-
-  case '/':
-  case '\\':
-  case '|':
-
-  case '\'':
-
-  case '<':
-  case '>':
-
-  case '.':
-  case ',':
-  case ' ':
-
-  case '\a':
-  case '\b':
-  case '\f':
-  case '\n':
-  case '\r':
-  case '\t':
-  case '\v':
-    return true;
-  default:
-    return false;
-  }
 }

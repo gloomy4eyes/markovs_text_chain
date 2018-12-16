@@ -11,7 +11,7 @@
 #include "MarkovsChain.h"
 #include "Curl.h"
 
-FileDownloader::FileDownloader(std::vector<std::string> &urls) : _urls(urls), _done(false), _index(0) {}
+FileDownloader::FileDownloader(const std::vector<std::string> &urls) : _urls(urls), _done(false), _index(0) {}
 
 FileDownloader::~FileDownloader() {}
 

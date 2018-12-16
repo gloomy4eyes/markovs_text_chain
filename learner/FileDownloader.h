@@ -10,7 +10,7 @@ class Curl;
 
 class FileDownloader {
  public:
-  explicit FileDownloader(std::vector<std::string> &urls);
+  explicit FileDownloader(const std::vector<std::string> &urls);
   ~FileDownloader();
 
   std::string download();

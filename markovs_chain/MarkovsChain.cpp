@@ -10,7 +10,7 @@
 
 MarkovsChain::MarkovsChain(size_t chainCount) : _chainCount(chainCount) {}
 
-void MarkovsChain::_addChainPart(const std::string &it) {
+void MarkovsChain::_addChainPart(const std::string &it, const std::vector<std::string> &vec) {
   auto str = Tokenizer::join(_window, ",");
   auto iterator = _chain.find(str);
   if (iterator == std::end(_chain)) {
@@ -19,7 +19,7 @@ void MarkovsChain::_addChainPart(const std::string &it) {
         _dictionary.push_back(word);
       }
     }
-    _chain.emplace(str, std::vector<size_t>());
+    _chain.emplace(str, _findAllNext(vec, str));
   }
   _window.pop_front();
   _window.push_back(it);
@@ -35,12 +35,7 @@ void MarkovsChain::learn(const std::vector<std::string> &vec) {
     _window.push_back(vec[i]);
   }
   for (auto it = std::begin(vec) + _chainCount; it != std::end(vec); ++it) {
-    _addChainPart(*it);
-  }
-  for (auto & t : _chain) {
-    for (auto & an : _findAllNext(vec, t.first)) {
-      t.second.emplace_back(an) ;
-    }
+    _addChainPart(*it, vec);
   }
 }
 
@@ -61,6 +56,9 @@ std::vector<size_t> MarkovsChain::_findAllNext(const std::vector<std::string> &v
         auto found = std::find(std::begin(_dictionary), std::end(_dictionary), *vecIt);
         if (found != std::end(_dictionary)) {
           retV.push_back((size_t)(found - std::begin(_dictionary)));
+        } else {
+          _dictionary.push_back(*vecIt);
+          retV.push_back((size_t)(_dictionary.size() - 1));
         }
       } else {
         break;
@@ -133,9 +131,8 @@ void MarkovsChain::print(std::ostream &ostr) {
     ostr << e.first << " : ";
     auto &v = e.second;
     for (auto it = std::begin(v); it != std::end(v); ++it) {
-      auto iit = it;
       ostr << _dictionary.at(*it);
-      if (++iit != std::end(v)) {
+      if (it + 1 != std::end(v)) {
         ostr << "|";
       }
     }
@@ -152,9 +149,8 @@ void MarkovsChain::dump(const std::string &path) {
     ofs << c.first << ":";
     auto &v = c.second;
     for (auto it  = std::begin(v); it != std::end(v); ++it) {
-      auto iit = it;
       ofs << *it;
-      if (++iit != std::end(v)) {
+      if (it + 1 != std::end(v)) {
         ofs << "|";
       }
     }

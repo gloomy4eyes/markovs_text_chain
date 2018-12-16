@@ -34,7 +34,7 @@ class MarkovsChain {
 
   std::vector<size_t> _findAllNext(const std::vector<std::string> &vec, const std::string &word);
   void _riseChainPart(const std::string &line);
-  void _addChainPart(const std::string &it);
+  void _addChainPart(const std::string &it, const std::vector<std::string> &vec);
 
 };
 
