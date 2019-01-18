@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     MarkovsChain mc(0);
     mc.riseDump(args.at(mcdumpArg));
-    std::cout << mc.generate(args.at(phraseArg), std::stoull(args.at(chainSequenceArg))) << std::endl;
+    std::wcout << mc.generate(Tokenizer::stringToWstring(args.at(phraseArg)), std::stoull(args.at(chainSequenceArg))) << std::endl;
   } catch (const std::exception & exc) {
     std::cerr << exc.what() << std::endl;
   }

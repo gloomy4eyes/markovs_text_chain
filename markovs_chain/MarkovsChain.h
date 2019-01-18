@@ -13,12 +13,12 @@ class MarkovsChain {
   explicit MarkovsChain(size_t chainCount);
   ~MarkovsChain();
 
-  void learn(const std::vector<std::string> &vec);
+  void learn(const std::vector<std::wstring> &vec);
 
-  std::string generate(const std::string &phrase, size_t sequenceCount);
+  std::wstring generate(const std::wstring &phrase, size_t sequenceCount);
 
   void print();
-  void print(std::ostream & ostr);
+  void print(std::wostream & ostr);
 
   void toFile(const std::string &path);
 
@@ -26,15 +26,15 @@ class MarkovsChain {
   void riseDump(const std::string &path);
 
  private:
-  std::unordered_map<std::string, std::vector<size_t>> _chain;
-  std::vector<std::string> _dictionary;
-  std::deque<std::string> _window;
+  std::unordered_map<std::wstring, std::vector<size_t>> _chain;
+  std::vector<std::wstring> _dictionary;
+  std::deque<std::wstring> _window;
   std::random_device _rd;
   size_t _chainCount;
 
-  std::vector<size_t> _findAllNext(const std::vector<std::string> &vec, const std::string &word);
-  void _riseChainPart(const std::string &line);
-  void _addChainPart(const std::string &it, const std::vector<std::string> &vec);
+  std::vector<size_t> _findAllNext(const std::vector<std::wstring> &vec, const std::wstring &word);
+  void _riseChainPart(const std::wstring &line);
+  void _addChainPart(const std::wstring &it, const std::vector<std::wstring> &vec);
 
 };
 

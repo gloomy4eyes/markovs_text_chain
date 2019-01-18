@@ -40,7 +40,7 @@ void learn(const std::string &data, MarkovsChain &mc) {
   std::string line;
   while (std::getline(istr, line)) {
     if (!line.empty()) {
-      mc.learn(Tokenizer::tokenize(line));
+      mc.learn(Tokenizer::tokenize(Tokenizer::stringToWstring(line)));
     }
   }
 }
