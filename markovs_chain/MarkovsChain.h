@@ -1,41 +1,50 @@
-#ifndef MARKOVS_TEXT_CHAIN_MARKOVSCHAIN_H
-#define MARKOVS_TEXT_CHAIN_MARKOVSCHAIN_H
+#pragma once
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <random>
 #include <deque>
-#include <iterator>
+#include <list>
+#include <random>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 class MarkovsChain {
- public:
-  explicit MarkovsChain(size_t chainCount);
-  ~MarkovsChain();
+public:
+  using probabilities_t = std::vector<size_t>;
+  using chain_t = std::unordered_map<std::wstring, probabilities_t>;
+  using dictionary_t = std::vector<std::wstring>;
+  using window_t = std::deque<std::wstring>;
 
-  void learn(const std::vector<std::wstring> &vec);
+  MarkovsChain() = default;
+  explicit MarkovsChain(size_t chainCount);
+
+  ~MarkovsChain() = default;
+
+  MarkovsChain(const MarkovsChain &rhs) = default;
+  MarkovsChain(MarkovsChain &&rhs) = default;
+  MarkovsChain &operator=(const MarkovsChain &rhs) = default;
+  MarkovsChain &operator=(MarkovsChain &&rhs) = default;
+
+  using tokens_t = std::vector<std::wstring>;
+
+  void learn(const tokens_t &dictionary);
+  void learn(const std::string &data);
 
   std::wstring generate(const std::wstring &phrase, size_t sequenceCount);
 
   void print();
-  void print(std::wostream & ostr);
+  void print(std::wostream &ostr);
 
   void toFile(const std::string &path);
 
   void dump(const std::string &path);
-  void riseDump(const std::string &path);
+  void dump(std::wostream &ostr);
 
- private:
-  std::unordered_map<std::wstring, std::vector<size_t>> _chain;
-  std::vector<std::wstring> _dictionary;
-  std::deque<std::wstring> _window;
-  std::random_device _rd;
-  size_t _chainCount;
+  static MarkovsChain riseDump(const std::string &path);
+  static MarkovsChain riseDump(std::wistream &istr);
 
-  std::vector<size_t> _findAllNext(const std::vector<std::wstring> &vec, const std::wstring &word);
-  void _riseChainPart(const std::wstring &line);
-  void _addChainPart(const std::wstring &it, const std::vector<std::wstring> &vec);
-
+private:
+  chain_t m_chain;
+  dictionary_t m_dictionary;
+  window_t m_window;
+  size_t m_chainCount = 0;
 };
-
-#endif //MARKOVS_TEXT_CHAIN_MARKOVSCHAIN_H

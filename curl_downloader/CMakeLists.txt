@@ -1,11 +1,11 @@
-add_library(tokenizer Tokenizer.cpp)
+add_library(curl_downloader CurlDownloader.cpp)
 
-target_include_directories(tokenizer
+target_include_directories(curl_downloader
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         )
 
-set_target_properties(tokenizer
+set_target_properties(curl_downloader
         PROPERTIES
         CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON
@@ -13,4 +13,4 @@ set_target_properties(tokenizer
         LIBRARY_OUTPUT_DIRECTORY ${MC_BINARY_DIR}
         )
 
-add_library(MC::tokenizer ALIAS tokenizer)
+add_library(MC::curl_downloader ALIAS curl_downloader)

@@ -2,29 +2,20 @@ cmake_minimum_required(VERSION 3.10)
 
 project(markovs_text_chain)
 
-set(CMAKE_CXX_STANDARD 17)
-
-option(ENABLE_TESTS "enables tests" ON)
-
-include_directories("/usr/include")
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+option(ENABLE_TESTS "enables tests" )
+option(${BUILD_SHARED_LIBS} "build shared libs" ON)
 
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
-set(BINARIES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-set(LIBRARIES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+set(MC_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set(MC_LIBRARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 add_subdirectory(tokenizer)
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
-
 add_subdirectory(markovs_chain)
-add_dependencies(markovs_chain tokenizer)
 
-add_subdirectory(learner)
-add_dependencies(learner markovs_chain)
-
+add_subdirectory(command_line_parser)
 add_subdirectory(text_generator)
-add_dependencies(text_generator markovs_chain)
+add_subdirectory(curl_downloader)
+add_subdirectory(learner)
 
 if (ENABLE_TESTS)
     add_subdirectory(tests)

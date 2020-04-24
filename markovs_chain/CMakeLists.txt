@@ -1,38 +1,23 @@
-cmake_minimum_required(VERSION 3.10)
+add_library(markovs_chain MarkovsChain.cpp)
 
-project(markovs_chain)
+target_link_libraries(markovs_chain
+        PUBLIC
+        MC::tokenizer
+        )
 
-set(dir ${LIBRARIES_DIR})
+target_include_directories(markovs_chain
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        )
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
+set_target_properties(markovs_chain
+        PROPERTIES
+        CXX_STANDARD 14
+        CXX_STANDARD_REQUIRED ON
+        ARCHIVE_OUTPUT_DIRECTORY ${MC_LIBRARY_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${MC_BINARY_DIR}
+        )
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${dir})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${dir})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${dir})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
+add_library(MC::markovs_chain ALIAS markovs_chain)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
-
-
-find_package(LIBTOKENIZER REQUIRED)
-include_directories(${LIBTOKENIZER_INCLUDE_DIR})
-
-set(SOURCES
-    MarkovsChain.h
-    MarkovsChain.cpp
-    )
-
-link_directories(${LIBTOKENIZER_LIB_DIR})
-
-add_library(${PROJECT_NAME} STATIC ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${LIBTOKENIZER_LIB})
 

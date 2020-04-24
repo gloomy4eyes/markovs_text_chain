@@ -1,39 +1,22 @@
-cmake_minimum_required(VERSION 3.10)
+list(APPEND LEARNER_SOURCES
+        Learner.cpp
+        )
 
-project(learner)
+add_executable(learner ${LEARNER_SOURCES})
 
-set(dir ${BINARIES_DIR})
+find_package(Curl REQUIRED)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
+target_link_libraries(learner
+        PRIVATE
+        MC::markovs_chain
+        MC::command_line_parser
+        MC::curl_downloader
+        CURL::libcurl
+        )
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
-
-find_package(LIBTOKENIZER REQUIRED)
-find_package(LIBMARKOVS_CHAIN REQUIRED)
-
-include_directories(${LIBTOKENIZER_INCLUDE_DIR})
-include_directories(${LIBMARKOVS_CHAIN_INCLUDE_DIR})
-
-set(SOURCES
-    main.cpp
-    FileDownloader.h
-    FileDownloader.cpp
-    Curl.h
-    Curl.cpp
-    Learner.cpp
-    Learner.h
-    )
-
-link_directories(${LIBTOKENIZER_LIB_DIR})
-link_directories(${LIBMARKOVS_CHAIN_LIB_DIR})
-
-add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} -lcurl ${LIBMARKOVS_CHAIN_LIB} ${LIBTOKENIZER_LIB})
+set_target_properties(learner
+        PROPERTIES
+        CXX_STANDARD 14
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${MC_BINARY_DIR}
+        )

@@ -1,103 +1,142 @@
 #include "MarkovsChain.h"
-
-#include <algorithm>
-#include <iostream>
-#include <fstream>
-#include <cassert>
-#include <sstream>
-
 #include "Tokenizer.h"
 
-MarkovsChain::MarkovsChain(size_t chainCount) : _chainCount(chainCount) {}
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
-void MarkovsChain::_addChainPart(const std::wstring &it, const std::vector<std::wstring> &vec) {
-  auto str = Tokenizer::join(_window, L",");
-  auto iterator = _chain.find(str);
-  if (iterator == std::end(_chain)) {
-    for (auto & word : _window) {
-      if (std::find(std::begin(_dictionary), std::end(_dictionary), word) == std::end(_dictionary)) {
-        _dictionary.push_back(word);
-      }
-    }
-    _chain.emplace(str, _findAllNext(vec, str));
-  }
-  _window.pop_front();
-  _window.push_back(it);
-}
+namespace {
 
-void MarkovsChain::learn(const std::vector<std::wstring> &vec) {
-  if (vec.size() < _chainCount) {
-    std::cerr << "to few data" << std::endl;
-    return;
-  }
-  _window.clear();
-  for (size_t i = 0; i < _chainCount; ++i) {
-    _window.push_back(vec[i]);
-  }
-  for (auto it = std::begin(vec) + _chainCount; it != std::end(vec); ++it) {
-    _addChainPart(*it, vec);
-  }
-}
+MarkovsChain::probabilities_t findProbabilities(MarkovsChain::dictionary_t &dictionary, const std::wstring &word,
+                                                const size_t chainCount) {
+  auto vecIt = dictionary.begin();
 
-MarkovsChain::~MarkovsChain() {}
+  auto v = string_manipulation::split(word, L",");
 
-std::vector<size_t> MarkovsChain::_findAllNext(const std::vector<std::wstring> &vec, const std::wstring &word) {
-  auto vecIt = vec.begin();
-
-  auto v = Tokenizer::split(word, L",");
-
-  std::vector<size_t> retV;
-  while (vecIt != std::end(vec)) {
-    vecIt = std::search(std::begin(vec) + std::distance(std::begin(vec), vecIt), std::end(vec), std::begin(v), std::end(v));
-    if (vecIt != std::end(vec)) {
-      if (((vecIt + _chainCount) != std::end(vec))) {
-        vecIt += _chainCount;
-//        std::wstring strs =  *vecIt;
-        auto found = std::find(std::begin(_dictionary), std::end(_dictionary), *vecIt);
-        if (found != std::end(_dictionary)) {
-          retV.push_back((size_t)(found - std::begin(_dictionary)));
+  MarkovsChain::probabilities_t probabilities;
+  while (vecIt != dictionary.end()) {
+    vecIt = std::search(dictionary.begin() + std::distance(dictionary.begin(), vecIt), dictionary.end(), v.begin(),
+                        v.end());
+    if (vecIt != dictionary.end()) {
+      if (((vecIt + chainCount) != dictionary.end())) {
+        vecIt += chainCount;
+        auto found = std::find(dictionary.begin(), dictionary.end(), *vecIt);
+        if (found != std::end(dictionary)) {
+          probabilities.push_back(static_cast<size_t>(found - dictionary.begin()));
         } else {
-          _dictionary.push_back(*vecIt);
-          retV.push_back((size_t)(_dictionary.size() - 1));
+          dictionary.push_back(*vecIt);
+          probabilities.push_back(static_cast<size_t>(dictionary.size() - 1));
         }
       } else {
         break;
       }
     }
   }
-  return retV;
+
+  return probabilities;
+}
+
+void addChainPart(const std::wstring &it, MarkovsChain::dictionary_t &dictionary, MarkovsChain::window_t &window,
+                  MarkovsChain::chain_t &chain, const size_t chainCount) {
+  auto str = string_manipulation::join(window, L",");
+
+  if (std::none_of(chain.begin(), chain.end(), [&str](const auto &pair) { return pair.first == str; })) {
+    for (auto &word : window) {
+      if (std::none_of(dictionary.begin(), dictionary.end(),
+                       [&word](const auto &dictWord) { return dictWord == word; })) {
+        dictionary.push_back(word);
+      }
+    }
+
+    chain.emplace(str, findProbabilities(dictionary, str, chainCount));
+  }
+
+  window.pop_front();
+  window.push_back(it);
+}
+
+void riseChainPart(const std::wstring &line, MarkovsChain::chain_t &chain) {
+  auto tokens = string_manipulation::split(line, L":");
+
+  if (tokens.empty()) {
+    return;
+  }
+
+  auto &key = *tokens.begin();
+  chain.emplace(key, std::vector<size_t>());
+
+  for (auto value = tokens.begin() + 1; value != tokens.end(); ++value) {
+    auto probabilities = string_manipulation::split(*value, L"|");
+
+    for (const auto &probability : probabilities) {
+      chain.at(key).push_back(stoi(probability));
+    }
+  }
+}
+
+} // namespace
+
+MarkovsChain::MarkovsChain(size_t chainCount) : m_chainCount(chainCount) {}
+
+void MarkovsChain::learn(const dictionary_t &dictionary) {
+  if (dictionary.size() < m_chainCount) {
+    std::cerr << "to few data" << std::endl;
+    return;
+  }
+  m_window.clear();
+  for (size_t i = 0; i < m_chainCount; ++i) {
+    m_window.push_back(dictionary[i]);
+  }
+  for (auto word = dictionary.begin() + m_chainCount; word != dictionary.end(); ++word) {
+    addChainPart(*word, m_dictionary, m_window, m_chain, m_chainCount);
+  }
+}
+
+void MarkovsChain::learn(const std::string &data) {
+  std::istringstream istr(data);
+  std::string line;
+  while (std::getline(istr, line)) {
+    if (!line.empty()) {
+      auto tmp = string_manipulation::toWstring(line);
+      auto tmp1 = string_manipulation::tokenize(tmp);
+      learn(tmp1);
+    }
+  }
 }
 
 std::wstring MarkovsChain::generate(const std::wstring &phrase, size_t sequenceCount) {
-  assert(!phrase.empty());
   if (phrase.empty()) {
     return {};
   }
-  if (_chainCount == 0) {
-    auto vec = Tokenizer::split(_chain.begin()->first, L",");
-    _chainCount = vec.size();
+
+  if (m_chainCount == 0) {
+    auto vec = string_manipulation::split(m_chain.begin()->first, L",");
+    m_chainCount = vec.size();
   }
 
-  auto tokens = Tokenizer::tokenize(phrase);
-  assert(!tokens.empty());
-  std::deque<std::wstring> deq(std::begin(tokens) + tokens.size() - _chainCount, std::end(tokens));
-  std::wstring str = Tokenizer::join(deq, L",");
-  assert(!str.empty());
+  auto tokens = string_manipulation::tokenize(phrase);
+
+  std::deque<std::wstring> deq(std::begin(tokens) + tokens.size() - m_chainCount, std::end(tokens));
+  std::wstring str = string_manipulation::join(deq, L",");
+
   std::wostringstream ss;
   auto &ostr = ss;
   ostr << "START " << phrase << " ";
 
+  std::random_device rd;
+
   try {
     while (sequenceCount > 0) {
-      auto &it = _chain.at(str);
+      auto &it = m_chain.at(str);
       if (!it.empty()) {
         std::uniform_int_distribution<int> dist(0, it.size() - 1);
-        auto randomIndex = static_cast<size_t>(dist(_rd));
-        str = _dictionary.at(it.at(randomIndex));
+        auto randomIndex = static_cast<size_t>(dist(rd));
+        str = m_dictionary.at(it.at(randomIndex));
         ostr << str << " ";
         deq.pop_front();
         deq.push_back(str);
-        str = Tokenizer::join(deq, L",");
+        str = string_manipulation::join(deq, L",");
         --sequenceCount;
       } else {
         ostr << " NO MORE WORDS.";
@@ -127,85 +166,90 @@ void MarkovsChain::print() {
 }
 
 void MarkovsChain::print(std::wostream &ostr) {
-  for (auto & e : _chain) {
+  for (auto &e : m_chain) {
     ostr << e.first << " : ";
     auto &v = e.second;
+
     for (auto it = std::begin(v); it != std::end(v); ++it) {
-      ostr << _dictionary.at(*it);
+      ostr << m_dictionary.at(*it);
+
       if (it + 1 != std::end(v)) {
         ostr << "|";
       }
     }
+
     ostr << std::endl;
   }
 }
 
 void MarkovsChain::dump(const std::string &path) {
   std::wofstream ofs(path);
-  if (!ofs.is_open()) {
-    throw std::runtime_error("file" + path + " open error: " + std::to_string(errno));
+  if (ofs.bad()) {
+    throw std::runtime_error("file " + path + " open error: " + std::to_string(errno));
   }
-  for (auto& c : _chain) {
-    ofs << c.first << ":";
-    auto &v = c.second;
-    for (auto it  = std::begin(v); it != std::end(v); ++it) {
-      ofs << *it;
-      if (it + 1 != std::end(v)) {
-        ofs << "|";
-      }
-    }
-    ofs << std::endl;
+
+  dump(ofs);
+
+  if (ofs.bad()) {
+    throw std::runtime_error("file " + path + " is bad, error: " + std::to_string(errno));
   }
-  ofs << "\nDICTIONARY\n";
-  for (auto it  = std::begin(_dictionary); it != std::end(_dictionary); ++it) {
-    ofs << *it;
-    if (it + 1 != std::end(_dictionary)) {
-      ofs << "|";
-    }
-  }
-  ofs << std::endl;
 }
 
-void MarkovsChain::riseDump(const std::string &path) {
-  std::wifstream ifs(path);
-  if (!ifs.is_open()) {
-    throw std::runtime_error("file" + path + " open error: " + std::to_string(errno));
+void MarkovsChain::dump(std::wostream &ostr) {
+  for (const auto &pair : m_chain) {
+    auto &chain = pair.first;
+    ostr << chain << ":";
+    auto &probabilities = pair.second;
+    auto &v = probabilities;
+    for (auto probability = probabilities.begin(); probability != probabilities.end(); ++probability) {
+      ostr << *probability;
+      if (probability + 1 != probabilities.end()) {
+        ostr << "|";
+      }
+    }
+    ostr << '\n';
   }
+  ostr << "\nDICTIONARY\n";
+  for (auto it = m_dictionary.begin(); it != m_dictionary.end(); ++it) {
+    auto &word = *it;
+    ostr << word;
+    if (it + 1 != m_dictionary.end()) {
+      ostr << "|";
+    }
+  }
+  ostr << '\n';
+}
+
+MarkovsChain MarkovsChain::riseDump(std::wistream &istr) {
   std::wstring line;
   bool isDic{false};
 
-  _chain.clear();
-  _dictionary.clear();
-  while (std::getline(ifs, line)) {
+  MarkovsChain mc;
+  while (std::getline(istr, line)) {
     if (!line.empty()) {
       if (!isDic) {
-        auto iter = line.find_first_of(':');
-        if (iter != std::string::npos) {
-          _riseChainPart(line);
+        auto colon_position = line.find_first_of(':');
+        if (colon_position != std::string::npos) {
+          riseChainPart(line, mc.m_chain);
         } else {
-          if(line == L"DICTIONARY") {
+          if (line == L"DICTIONARY") {
             isDic = true;
           }
         }
       } else {
-        _dictionary = Tokenizer::split(line, L"|");
+        mc.m_dictionary = string_manipulation::split(line, L"|");
       }
     }
   }
+
+  return mc;
 }
 
-void MarkovsChain::_riseChainPart(const std::wstring &line) {
-  auto v = Tokenizer::split(line, L":");
-  if (!v.empty()) {
-    auto &str = *v.begin();
-    _chain.emplace(str, std::vector<size_t >());
-    for (auto it = v.begin() + 1; it != v.end(); ++it) {
-      auto s = Tokenizer::split(*it, L"|");
-      for (auto iit = std::begin(s); iit != std::end(s); ++iit) {
-        _chain.at(str).push_back(stoi(*iit));
-      }
-    }
+MarkovsChain MarkovsChain::riseDump(const std::string &path) {
+  std::wifstream ifs(path);
+  if (!ifs.is_open()) {
+    throw std::runtime_error("file" + path + " open error: " + std::to_string(errno));
   }
+
+  return riseDump(ifs);
 }
-
-

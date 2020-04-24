@@ -1,72 +1,75 @@
+#include "CommandLineParser.h"
+#include "CurlDownloader.h"
+#include <MarkovsChain.h>
+
 #include <fstream>
-#include <cstring>
-#include "Learner.h"
+#include <iostream>
+#include <list>
 
-#include "FileDownloader.h"
-#include "MarkovsChain.h"
-#include "Tokenizer.h"
-
+namespace {
 constexpr auto chainCountArg = "--chaincount";
-constexpr auto urlsArg = "--urls";
+constexpr auto fileArg = "--file";
 constexpr auto mcdumpArg = "--mcdump";
 
-bool checkArgument(arguments & args, const std::string & arg) {
-  auto checkItem = args.find(arg);
-  return (checkItem != std::end(args)) ? !checkItem->second.empty() : false;
+void help() {
+  std::cout << "usage:\n\t--file \'file with text or urls\' --chaincount \' "
+               "positive digital\' --mcdump \'file for markovs chain dump\'";
 }
 
-arguments parseCommandArgs(int argc, char* argv[]){
-  if (argc != 7) {
-    throw std::runtime_error("usage");
-  }
-  arguments cm;
-  std::string curOption;
-  for (int i = 1; i < argc; ++i) {
-    curOption = argv[i];
-    if (curOption[0] == '-' && curOption[1] == '-') {
-      cm.emplace(curOption, argv[++i]);
-    }
-  }
+using fileLines_t = std::list<std::string>;
+fileLines_t get_lines_from_file(const std::string &filePath) {
+  std::ifstream ifs(filePath);
 
-  if (!checkArgument(cm, urlsArg) || !checkArgument(cm, chainCountArg) || !checkArgument(cm, mcdumpArg) || std::stoull(cm.at(chainCountArg)) < 1) {
-    throw std::runtime_error("usage");
-  }
-
-  return cm;
-}
-
-void learn(const std::string &data, MarkovsChain &mc) {
-  std::istringstream istr(data);
-  std::string line;
-  while (std::getline(istr, line)) {
-    if (!line.empty()) {
-      mc.learn(Tokenizer::tokenize(Tokenizer::stringToWstring(line)));
-    }
-  }
-}
-
-void Learner::run() {
-  std::ifstream ifs(_args.at(urlsArg));
   if (!ifs.is_open()) {
     throw std::runtime_error(std::string("error on urls file open - ") + strerror(errno));
   }
 
-  std::vector<std::string> urls;
+  fileLines_t fileLines;
   std::string line;
+
   while (std::getline(ifs, line)) {
     if (line.back() == '\r') {
       line.pop_back();
     }
-    urls.push_back(line);
+
+    fileLines.push_back(line);
   }
 
-  MarkovsChain mc(std::stoull(_args.at(chainCountArg)));
-  FileDownloader fd(urls);
-  while (!fd.isDone()) {
-    learn(fd.download(), mc);
-  }
-
-  mc.dump(_args.at(mcdumpArg));
+  return fileLines;
 }
 
-Learner::Learner(int argc, char **argv) : _args(parseCommandArgs(argc, argv)) {}
+bool line_is_url(const std::string &line) {
+  if (line.size() < 4) {
+    return false;
+  }
+
+  return ((line[0] == 'h') && (line[1] == 't') && (line[2] == 't') && (line[3] == 'p'));
+}
+} // namespace
+
+int main(int argc, char *argv[]) {
+#if defined __APPLE__
+  setlocale(LC_ALL, "en_US.UTF-8");
+#else
+  setlocale(LC_ALL, "en_US.UTF8");
+#endif
+
+  try {
+    command_line::Parser parser(argc, argv);
+
+    const auto lines = get_lines_from_file(parser.get(fileArg));
+    MarkovsChain mc(std::stoull(parser.get(chainCountArg)));
+    CurlDownloader curl;
+
+    for (const auto &line : lines) {
+      mc.learn((line_is_url(line)) ? curl.download(line) : line);
+    }
+
+    mc.dump(parser.get(mcdumpArg));
+  } catch (const std::exception &exc) {
+    std::cerr << exc.what() << std::endl;
+    help();
+  }
+
+  return 0;
+}

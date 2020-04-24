@@ -1,33 +1,14 @@
-cmake_minimum_required(VERSION 3.10)
+add_executable(text_generator TextGenerator.cpp)
 
-project(text_generator)
+target_link_libraries(text_generator
+        PRIVATE
+        MC::markovs_chain
+        MC::command_line_parser
+        )
 
-set(dir ${BINARIES_DIR})
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
-
-find_package(LIBTOKENIZER REQUIRED)
-find_package(LIBMARKOVS_CHAIN REQUIRED)
-
-include_directories(${LIBTOKENIZER_INCLUDE_DIR})
-include_directories(${LIBMARKOVS_CHAIN_INCLUDE_DIR})
-
-set(SOURCES
-    main.cpp
-    )
-
-link_directories(${LIBTOKENIZER_LIB_DIR})
-link_directories(${LIBMARKOVS_CHAIN_LIB_DIR})
-
-add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${LIBMARKOVS_CHAIN_LIB} ${LIBTOKENIZER_LIB})
+set_target_properties(text_generator
+        PROPERTIES
+        CXX_STANDARD 14
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${MC_BINARY_DIR}
+        )
